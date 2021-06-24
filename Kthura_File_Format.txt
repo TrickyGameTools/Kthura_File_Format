@@ -1,0 +1,97 @@
+Kthura File Format
+==================
+
+Kthura is an object based file format. It was primary designed for adventure games, but is now used for RPG games too.
+
+Games using this system are:
+- Star Story
+- Secrets of Dyrt.NET
+- The Fairy Tale REVAMPED
+- Sixty-Three Fires of Lung (planned)
+- Star Story II (planned)
+
+
+
+
+Basis of the format
+-------------------
+Kthura files are all JCR6 files. How JCR6 works is explaied here: https://github.com/jcr6/The-JCR-FileFormat
+
+The design is made to make Kthura files either function as stand alone files, or packed together with other Kthura maps 
+and even completely different data in an entire package. In the letter case all entries related to the Kthura map needs the same prefix. 
+I usually end those prefixes with "/" myself as to make that all look like folders (makes it also easier for programs like Stach to see them as such).
+
+Loaders for Kthura should therefore be able to load with or without such a prefix.
+
+A Kthura map contains three entries inside the JCR file
+DATA - Contains meta data 
+OBJECTS - The objects used to create the map
+OPTIONS - This entry is optional and not yet documented here, but it contains configuration.
+
+
+DATA
+----
+This is the only "binary" file inside a Kthura map bundle. It basically just contains a collection of strings. A key and a value.
+It's just a set of 2 strings all the time until the end of the file is reached. First string the key, second string the value. 
+In C++ a std::map<std::string,std::string> would be the easiest way to go.
+
+The strings are prixed with a signed 32-bit integer in LittleEndian containing the string's length, and the next characters contain the string itself. No null-terminator or extra bytes, just exactly the number of bytes as the string is long, no more, no less.
+
+
+OBJECTS
+-------
+This is a plain text file with x0A only for line endings (yes, even in Windows). 
+The Kthura parsing system is very extremely primitive and therefore not very tolerant on errors (since the stuff is mostly generated not that much of an issue).
+
+All lines prefixed with "--" are comments or remarks. They will ignored. Please note "--" can only be used at the start of a line (idents not counted as the parser ignores those), and not after any form of instruction.
+
+Now I'll assume you've already sniffed a bit in the existing editors before reading this documentating, in other words, I take it you know how Kthura maps are basically functioning 
+runtime, so I won't explain all Kthura terms in full, just how they are stored here.
+
+
+OBJECTS files should always start with a "LAYERS" scope. The next lines should contain the layer names and the line "__END" ends this scope.
+
+Then the next instructions come. Unless stated otherwise, all instructions are defintions so "KEY = VALUE" kind of syntax.
+LAYER - Will define which layer to set the data for.
+BLOCKMAPGRID - Contains the grid the blockmap should be set for. Mostly set to 32x32.
+
+NEW - Stand a lone command without a value (so no =VALUE required). Starts a new object defintion.
+KIND - Kind of object. Can be either "TiledArea", "Rect", "StretchedArea", "Obstacle", "Picture", "Pivot", "Zone" or any value prefixed with a $
+COORD - Coordinate (in case of TiledArea, Rect, StretchedArea or Zone, the topleft coordinate). Value in "x, y" format
+INSERT - Insert point (only effective on TiledArea). Value in "x, y" format
+ROTATION - Rotation of obstacles (in degrees) 
+SIZE - Size (only effective in area based objects) Like: 32x64  (so in wxh format)
+TAG - Tag value (must be unique for each layer)
+LABELS - Labels (can be multiple values separated with commas)
+DOMINANCE - Dominance value (20 is mostly used as default).
+TEXTURE - Texture (Note: the path names are based on JCR6. More info below).
+CURRENTFRAME - Current frame for multi frame textures
+FRAMESPEED - Speed of animation. The higher the number the slower it goes. Any value lower than 0 is no animation.
+ALPHA255 - Alpha value 0 to 255 
+ALPHA1000 - Alpha value in a 0 to 1000 scale (deprecated).
+VISIBLE - Visibility (1 = visible, 0 = hidden).
+COLOR - Color. Format "R, G, B" (values 0 till 255)
+IMPASSIBLE - Impassibility for area based objects. 1 is blocked, 0 is not blocked. Please note Kthura uses a blockmap that has to be generated for this, but will use this value for that.
+FORCEPASSIBLE - Force passible. Will override impassible if set to 1.
+SCALE - Scale format x,y.... 1000 = normal size. 500 = half. 2000 = twice as big.
+BLEND - Blend mode. Normally alphablend. Keep 0 if unsure. Numbers for this may be documented later
+
+
+OPTIONS
+-------
+These are config files in GINIE format. This file is optional. I may put on more documentaton on this later.
+
+
+
+Note about texture files
+------------------------
+Kthura has been designed to work optimally with JCR6. In my games, these textures are in the same JCR6 files as the Kthura maps, and the path names are then the names as stored in the JCR6 file.
+In editors this can be problemetic, but the system has been adapted for this. JCR6 can adopt real filesystem folders as JCR6 resources if set up for that and even combine them. 
+Make sure the folder where the textures are stored are then by the editor seen as JCR6 resources and make sure the texture full path names turn out the same as in the game release, and you'll be fine.
+
+Please note JCR6 is always CASE INSENSITIVE. When JCR6 adopts a real folder as its own resource, it will EVEN IN LINUX/UNIX be case insensitive. 
+This to make sure this situation is the same as in an actual full package. When more files with the same name but different case usage are found there's no telling which
+file will be the most dominant, so keep that in mind, always.
+
+
+
