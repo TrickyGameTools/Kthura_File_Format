@@ -35,7 +35,7 @@ This is the only "binary" file inside a Kthura map bundle. It basically just con
 It's just a set of 2 strings all the time until the end of the file is reached. First string the key, second string the value. 
 In C++ a std::map<std::string,std::string> would be the easiest way to go.
 
-The strings are prixed with a signed 32-bit integer in LittleEndian containing the string's length, and the next characters contain the string itself. No null-terminator or extra bytes, just exactly the number of bytes as the string is long, no more, no less.
+The strings are prefixed with a signed 32-bit integer in LittleEndian containing the string's length, and the next characters contain the string itself. No null-terminator or extra bytes, just exactly the number of bytes as the string is long, no more, no less.
 
 
 OBJECTS
